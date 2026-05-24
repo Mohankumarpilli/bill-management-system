@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bill Manager</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f9fafb; font-family: 'Segoe UI', system-ui, sans-serif; }
+    input:focus { border-color: #6366f1 !important; outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+    .menu-card:hover { border-color: #6366f1 !important; background: #fafaff !important; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef } = React;
+
+    const MENU = [
+      { id: "idli",        name: "Idli",           price: 20,  emoji: "🍚", category: "Breakfast" },
+      { id: "dosa",        name: "Dosa",            price: 40,  emoji: "🫓", category: "Breakfast" },
+      { id: "masala_dosa", name: "Masala Dosa",     price: 60,  emoji: "🫓", category: "Breakfast" },
+      { id: "puri",        name: "Puri",            price: 30,  emoji: "🫓", category: "Breakfast" },
+      { id: "upma",        name: "Upma",            price: 25,  emoji: "🍲", category: "Breakfast" },
+      { id: "poha",        name: "Poha",            price: 25,  emoji: "🍛", category: "Breakfast" },
+      { id: "vada",        name: "Medu Vada",       price: 30,  emoji: "🍩", category: "Breakfast" },
+      { id: "uttapam",     name: "Uttapam",         price: 50,  emoji: "🥞", category: "Breakfast" },
+      { id: "rice",        name: "Steamed Rice",    price: 40,  emoji: "🍚", category: "Meals" },
+      { id: "dal",         name: "Dal Fry",         price: 60,  emoji: "🍛", category: "Meals" },
+      { id: "sambar",      name: "Sambar",          price: 30,  emoji: "🍲", category: "Meals" },
+      { id: "rasam",       name: "Rasam",           price: 20,  emoji: "🥣", category: "Meals" },
+      { id: "paneer",      name: "Paneer Butter Masala", price: 120, emoji: "🧀", category: "Meals" },
+      { id: "roti",        name: "Roti",            price: 15,  emoji: "🫓", category: "Meals" },
+      { id: "naan",        name: "Naan",            price: 25,  emoji: "🫓", category: "Meals" },
+      { id: "biryani",     name: "Veg Biryani",     price: 100, emoji: "🍛", category: "Meals" },
+      { id: "chai",        name: "Chai",            price: 15,  emoji: "☕", category: "Drinks" },
+      { id: "coffee",      name: "Filter Coffee",   price: 20,  emoji: "☕", category: "Drinks" },
+      { id: "lassi",       name: "Lassi",           price: 40,  emoji: "🥛", category: "Drinks" },
+      { id: "juice",       name: "Fresh Juice",     price: 50,  emoji: "🧃", category: "Drinks" },
+      { id: "water",       name: "Mineral Water",   price: 20,  emoji: "💧", category: "Drinks" },
+    ];
+
+    const CATEGORIES = ["All", ...Array.from(new Set(MENU.map(i => i.category)))];
+
+    function BillManager() {
+      const [bill, setBill] = useState({});          // { itemId: qty }
+      const [activeCategory, setActiveCategory] = useState("All");
+      const [customName, setCustomName] = useState("");
+      const [customPrice, setCustomPrice] = useState("");
+      const [customQty, setCustomQty] = useState(1);
+      const [customError, setCustomError] = useState("");
+      const [customItems, setCustomItems] = useState([]);
+      const printRef = useRef();
+
+      const setQty = (id, qty) => {
+        const q = Math.max(0, parseInt(qty) || 0);
+        setBill(prev => {
+          const next = { ...prev };
+          if (q === 0) delete next[id]; else next[id] = q;
+          return next;
+        });
+      };
+
+      const increment = (id) => setQty(id, (bill[id] || 0) + 1);
+      const decrement = (id) => setQty(id, (bill[id] || 1) - 1);
+      const removeCustom = (id) => {
+        setCustomItems(prev => prev.filter(i => i.id !== id));
+        setBill(prev => { const next = { ...prev }; delete next[id]; return next; });
+      };
+
+      const addCustom = () => {
+        if (!customName.trim()) return setCustomError("Item name is required.");
+        if (!customPrice || isNaN(customPrice) || Number(customPrice) <= 0)
+          return setCustomError("Enter a valid price.");
+        setCustomError("");
+        const id = "custom_" + Math.random().toString(36).substr(2, 7);
+        const item = { id, name: customName.trim(), price: parseFloat(parseFloat(customPrice).toFixed(2)), emoji: "🍽️", category: "Custom" };
+        setCustomItems(prev => [...prev, item]);
+        setBill(prev => ({ ...prev, [id]: Math.max(1, parseInt(customQty) || 1) }));
+        setCustomName(""); setCustomPrice(""); setCustomQty(1);
+      };
+
+      const clearAll = () => { setBill({}); setCustomItems([]); };
+
+      const allItems = [...MENU, ...customItems];
+      const filteredMenu = activeCategory === "All" ? MENU : MENU.filter(i => i.category === activeCategory);
+
+      const billedItems = allItems.filter(i => bill[i.id]);
+      const total = billedItems.reduce((sum, i) => sum + i.price * bill[i.id], 0);
+      const totalUnits = billedItems.reduce((sum, i) => sum + bill[i.id], 0);
+
+      const handlePrint = () => {
+        const content = printRef.current.innerHTML;
+        const win = window.open("", "_blank");
+        win.document.write(`
+          <html><head><title>Bill</title><style>
+            body{font-family:'Segoe UI',sans-serif;padding:32px;color:#1a1a1a}
+            h1{font-size:22px;margin-bottom:4px}
+            .sub{color:#888;font-size:13px;margin-bottom:24px}
+            table{width:100%;border-collapse:collapse}
+            th{text-align:left;border-bottom:2px solid #e5e7eb;padding:8px 12px;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.05em}
+            td{padding:10px 12px;border-bottom:1px solid #f3f4f6;font-size:14px}
+            .r{text-align:right}
+            .tot td{font-weight:700;font-size:16px;border-top:2px solid #e5e7eb;border-bottom:none;padding-top:16px}
+            .foot{margin-top:32px;font-size:12px;color:#aaa;text-align:center}
+          </style></head><body>${content}</body></html>
+        `);
+        win.document.close(); win.print();
+      };
+
+      const now = new Date().toLocaleString();
+
+      // ── Styles ──────────────────────────────────────────────
+      const card = (selected) => ({
+        border: `1.5px solid ${selected ? "#6366f1" : "#e5e7eb"}`,
+        borderRadius: 12,
+        padding: "12px 14px",
+        background: selected ? "#f0f0ff" : "#fff",
+        cursor: "pointer",
+        transition: "all 0.15s",
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
+        position: "relative",
+      });
+
+      const btnPrimary = {
+        background: "#6366f1", color: "#fff", border: "none",
+        borderRadius: 8, padding: "9px 20px", fontSize: 14,
+        fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
+      };
+
+      const qtyBtn = {
+        width: 28, height: 28, borderRadius: 6, border: "1.5px solid #e5e7eb",
+        background: "#fff", cursor: "pointer", fontSize: 16, fontWeight: 700,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        color: "#374151", lineHeight: 1,
+      };
+
+      return (
+        <div style={{ minHeight: "100vh", background: "#f9fafb", padding: "28px 16px" }}>
+          <div style={{ maxWidth: 860, margin: "0 auto" }}>
+
+            {/* Header */}
+            <div style={{ marginBottom: 24 }}>
+              <h1 style={{ fontSize: 26, fontWeight: 800, color: "#111827" }}>🧾 Bill Manager</h1>
+              <p style={{ color: "#6b7280", fontSize: 14, marginTop: 5 }}>Select items from the menu — your bill updates instantly.</p>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20, alignItems: "start" }}>
+
+              {/* LEFT — Menu */}
+              <div>
+                {/* Category Tabs */}
+                <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+                  {CATEGORIES.map(cat => (
+                    <button key={cat} onClick={() => setActiveCategory(cat)} style={{
+                      padding: "6px 16px", borderRadius: 20, fontSize: 13, fontWeight: 600,
+                      border: "1.5px solid " + (activeCategory === cat ? "#6366f1" : "#e5e7eb"),
+                      background: activeCategory === cat ? "#6366f1" : "#fff",
+                      color: activeCategory === cat ? "#fff" : "#6b7280",
+                      cursor: "pointer", transition: "all 0.15s",
+                    }}>{cat}</button>
+                  ))}
+                </div>
+
+                {/* Menu Grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
+                  {filteredMenu.map(item => {
+                    const qty = bill[item.id] || 0;
+                    const selected = qty > 0;
+                    return (
+                      <div key={item.id} className="menu-card" style={card(selected)} onClick={() => !selected && increment(item.id)}>
+                        <span style={{ fontSize: 26 }}>{item.emoji}</span>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "#111827", lineHeight: 1.3 }}>{item.name}</div>
+                          <div style={{ fontSize: 13, color: "#6366f1", fontWeight: 700, marginTop: 2 }}>₹{item.price}</div>
+                        </div>
+                        {selected && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }} onClick={e => e.stopPropagation()}>
+                            <button style={qtyBtn} onClick={() => decrement(item.id)}>−</button>
+                            <span style={{ fontSize: 14, fontWeight: 700, minWidth: 20, textAlign: "center" }}>{qty}</span>
+                            <button style={qtyBtn} onClick={() => increment(item.id)}>+</button>
+                          </div>
+                        )}
+                        {selected && (
+                          <div style={{ position: "absolute", top: 8, right: 8, background: "#6366f1", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {qty}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Custom Item */}
+                <div style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", marginTop: 16 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 12 }}>➕ Add Custom Item</h3>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <input value={customName} onChange={e => setCustomName(e.target.value)} placeholder="Item name"
+                      onKeyDown={e => e.key === "Enter" && addCustom()}
+                      style={{ flex: 1, minWidth: 130, border: "1.5px solid #e5e7eb", borderRadius: 8, padding: "8px 10px", fontSize: 13, outline: "none" }} />
+                    <input value={customPrice} onChange={e => setCustomPrice(e.target.value)} placeholder="Price (₹)" type="number"
+                      onKeyDown={e => e.key === "Enter" && addCustom()}
+                      style={{ width: 110, border: "1.5px solid #e5e7eb", borderRadius: 8, padding: "8px 10px", fontSize: 13, outline: "none" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <span style={{ fontSize: 12, color: "#9ca3af" }}>Qty</span>
+                      <input value={customQty} onChange={e => setCustomQty(e.target.value)} type="number" min="1"
+                        style={{ width: 58, border: "1.5px solid #e5e7eb", borderRadius: 8, padding: "8px 8px", fontSize: 13, outline: "none" }} />
+                    </div>
+                    <button onClick={addCustom} style={{ ...btnPrimary, padding: "8px 16px", fontSize: 13 }}>Add</button>
+                  </div>
+                  {customError && <p style={{ color: "#ef4444", fontSize: 12, marginTop: 8 }}>{customError}</p>}
+
+                  {customItems.length > 0 && (
+                    <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                      {customItems.map(item => (
+                        <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", background: "#f9fafb", borderRadius: 8 }}>
+                          <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: "#111827" }}>{item.name}</span>
+                          <span style={{ fontSize: 13, color: "#6366f1", fontWeight: 600 }}>₹{item.price}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                            <button style={qtyBtn} onClick={() => decrement(item.id)}>−</button>
+                            <span style={{ fontSize: 13, fontWeight: 700, minWidth: 18, textAlign: "center" }}>{bill[item.id] || 0}</span>
+                            <button style={qtyBtn} onClick={() => increment(item.id)}>+</button>
+                          </div>
+                          <button onClick={() => removeCustom(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#d1d5db", fontSize: 14 }}
+                            onMouseEnter={e => e.target.style.color = "#ef4444"}
+                            onMouseLeave={e => e.target.style.color = "#d1d5db"}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* RIGHT — Bill Summary */}
+              <div style={{ position: "sticky", top: 20 }}>
+                <div style={{ background: "#fff", borderRadius: 14, boxShadow: "0 1px 6px rgba(0,0,0,0.08)", overflow: "hidden" }}>
+                  <div style={{ padding: "14px 18px", borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h2 style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>Current Bill</h2>
+                    {billedItems.length > 0 && (
+                      <button onClick={clearAll} style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: 12, fontWeight: 600 }}>Clear all</button>
+                    )}
+                  </div>
+
+                  {billedItems.length === 0 ? (
+                    <div style={{ padding: "40px 18px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>
+                      No items selected yet.<br />Tap any menu item to add it.
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ maxHeight: 340, overflowY: "auto" }}>
+                        {billedItems.map(item => (
+                          <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderBottom: "1px solid #f9fafb" }}>
+                            <span style={{ fontSize: 18 }}>{item.emoji}</span>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{item.name}</div>
+                              <div style={{ fontSize: 12, color: "#9ca3af" }}>₹{item.price} × {bill[item.id]}</div>
+                            </div>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>₹{(item.price * bill[item.id]).toFixed(2)}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Total */}
+                      <div style={{ padding: "14px 18px", borderTop: "2px solid #f3f4f6" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                          <span style={{ fontSize: 13, color: "#6b7280" }}>{billedItems.length} item{billedItems.length !== 1 ? "s" : ""} · {totalUnits} unit{totalUnits !== 1 ? "s" : ""}</span>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                          <span style={{ fontSize: 16, fontWeight: 700, color: "#374151" }}>Total</span>
+                          <span style={{ fontSize: 26, fontWeight: 800, color: "#111827" }}>₹{total.toFixed(2)}</span>
+                        </div>
+                        <button onClick={handlePrint} style={{ ...btnPrimary, width: "100%", textAlign: "center", padding: "11px" }}>
+                          🖨️ Print Bill
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Hidden Print Template */}
+            <div ref={printRef} style={{ display: "none" }}>
+              <h1>Bill</h1>
+              <p class="sub">Generated on {now}</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th class="r">Qty</th>
+                    <th class="r">Unit Price</th>
+                    <th class="r">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {billedItems.map(item => (
+                    <tr key={item.id}>
+                      <td>{item.name}</td>
+                      <td class="r">{bill[item.id]}</td>
+                      <td class="r">₹{item.price.toFixed(2)}</td>
+                      <td class="r">₹{(item.price * bill[item.id]).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                  <tr class="tot">
+                    <td colSpan="3">Total</td>
+                    <td class="r">₹{total.toFixed(2)}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="foot">Bill Manager · {now}</p>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<BillManager />);
+  </script>
+</body>
+</html>
