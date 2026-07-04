@@ -39,11 +39,16 @@ const INIT_MENU = [
   { id: "pep",  name: "Pepperoni",         price: 220, cats: ["Pizza"],                         emoji: "🍕", bg: "#fce4ec", variant: "Medium"  },
   { id: "bbq",  name: "BBQ Chicken",       price: 240, cats: ["Pizza"],                         emoji: "🍕", bg: "#fff8e1", variant: "Medium"  },
   { id: "vgs",  name: "Veggie Supreme",    price: 200, cats: ["Pizza"],                         emoji: "🍕", bg: "#e8f5e9", variant: "Medium"  },
-  { id: "idl",  name: "Idli",             price: 20,  cats: ["Breakfast"],                     emoji: "🍚", bg: "#f5f5f5", variant: "2 pcs"   },
-  { id: "dosa", name: "Masala Dosa",       price: 60,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#fff8e1", variant: "Regular" },
-  { id: "pur",  name: "Puri Bhaji",        price: 40,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#fff3e0", variant: "Regular" },
-  { id: "upm",  name: "Upma",             price: 25,  cats: ["Breakfast"],                     emoji: "🍲", bg: "#e8f5e9", variant: "Regular" },
-  { id: "vad",  name: "Medu Vada",         price: 30,  cats: ["Breakfast"],                     emoji: "🍩", bg: "#fff8e1", variant: "2 pcs"   },
+  { id: "idl",   name: "Idly",            price: 30,  cats: ["Breakfast"],                     emoji: "🍚", bg: "#f5f5f5", variant: "3 pcs"   },
+  { id: "poori", name: "Poori",           price: 40,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#fff3e0", variant: "2 pcs"   },
+  { id: "bonda", name: "Bonda",           price: 30,  cats: ["Breakfast"],                     emoji: "🍩", bg: "#fff8e1", variant: "3 pcs"   },
+  { id: "vad",   name: "Vada",            price: 30,  cats: ["Breakfast"],                     emoji: "🍩", bg: "#fce4ec", variant: "2 pcs"   },
+  { id: "sidl",  name: "Sambar Idly",     price: 40,  cats: ["Breakfast"],                     emoji: "🍚", bg: "#e8f5e9", variant: "Regular" },
+  { id: "kud",   name: "Kudumu",          price: 30,  cats: ["Breakfast"],                     emoji: "🍚", bg: "#f5f5f5", variant: "Regular" },
+  { id: "upm",   name: "Upma",            price: 30,  cats: ["Breakfast"],                     emoji: "🍲", bg: "#e8f5e9", variant: "Regular" },
+  { id: "pdosa", name: "Plain Dosa",      price: 35,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#fff8e1", variant: "Regular" },
+  { id: "odosa", name: "Onion Dosa",      price: 40,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#fce4ec", variant: "Regular" },
+  { id: "udosa", name: "Upma Dosa",       price: 45,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#e0f2f1", variant: "Regular" },
   { id: "las",  name: "Mango Lassi",       price: 60,  cats: ["Drinks"],                        emoji: "🥛", bg: "#fff8e1", variant: "Regular" },
   { id: "jui",  name: "Fresh Juice",       price: 60,  cats: ["Drinks"],                        emoji: "🧃", bg: "#e8f5e9", variant: "Regular" },
   { id: "lem",  name: "Lemonade",          price: 40,  cats: ["Drinks"],                        emoji: "🍋", bg: "#fffde7", variant: "Regular" },
@@ -121,16 +126,16 @@ export default function RestaurantPOS() {
     const content = printRef.current.innerHTML;
     const win = window.open("", "_blank");
     win.document.write(`<html><head><title>Bill</title><style>
-      body{font-family:'Segoe UI',sans-serif;padding:24px;color:#111;max-width:320px}
-      h2{font-size:18px;text-align:center;margin-bottom:4px}
-      .sub{font-size:12px;color:#888;text-align:center;margin-bottom:16px}
+      body{font-family:'Segoe UI',sans-serif;padding:24px;color:#111;max-width:320px;font-weight:600}
+      h2{font-size:18px;text-align:center;margin-bottom:4px;font-weight:800}
+      .sub{font-size:12px;color:#888;text-align:center;margin-bottom:16px;font-weight:600}
       table{width:100%;border-collapse:collapse;font-size:13px}
-      th{border-bottom:1.5px solid #ddd;padding:6px 4px;text-align:left;color:#555;font-size:11px;text-transform:uppercase}
-      td{padding:7px 4px;border-bottom:1px solid #f0f0f0}
+      th{border-bottom:1.5px solid #ddd;padding:6px 4px;text-align:left;color:#555;font-size:11px;text-transform:uppercase;font-weight:800}
+      td{padding:7px 4px;border-bottom:1px solid #f0f0f0;font-weight:700}
       .r{text-align:right}
-      .tot td{font-weight:700;font-size:15px;border-top:2px solid #222;border-bottom:none;padding-top:10px}
-      .muted{color:#888;font-size:12px}
-      .footer{margin-top:20px;text-align:center;font-size:11px;color:#aaa}
+      .tot td{font-weight:900;font-size:15px;border-top:2px solid #222;border-bottom:none;padding-top:10px}
+      .muted{color:#888;font-size:12px;font-weight:600}
+      .footer{margin-top:20px;text-align:center;font-size:11px;color:#aaa;font-weight:600}
     </style></head><body>${content}</body></html>`);
     win.document.close(); win.print();
   };
@@ -144,7 +149,7 @@ export default function RestaurantPOS() {
       <div style={{ background: NAV, color: "#fff", padding: "0 20px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 20 }}>🍽️</span>
-          <span style={{ fontWeight: 700, fontSize: 17 }}>MMB Valentine Restaurant</span>
+          <span style={{ fontWeight: 700, fontSize: 17 }}>MMB Valentine</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <input value={search} onChange={(e) => setSearch(e.target.value)}
@@ -419,7 +424,7 @@ export default function RestaurantPOS() {
           <div style={{ background: "#fff", borderRadius: 16, width: 400, maxHeight: "90vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
             <div style={{ background: NAV, padding: "16px 20px", borderRadius: "16px 16px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>🍽️ MMB Valentine Restaurant</div>
+                <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>🍽️ MMB Valentine</div>
                 <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, marginTop: 2 }}>{orderType}{table ? " · Table " + table : ""}{customer ? " · " + customer : ""}</div>
               </div>
               <button onClick={() => setShowBill(false)} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: 6, width: 28, height: 28, fontSize: 16, cursor: "pointer" }}>✕</button>
@@ -437,16 +442,16 @@ export default function RestaurantPOS() {
                 <tbody>
                   {ordered.map((item) => (
                     <tr key={item.id} style={{ borderBottom: "1px solid #f5f5f5" }}>
-                      <td style={{ padding: "8px 0", fontSize: 13, fontWeight: 500 }}>{item.name}<br /><span style={{ fontSize: 11, color: ACCENT }}>{item.variant}</span></td>
-                      <td style={{ textAlign: "right", fontSize: 13 }}>{order[item.id]}</td>
-                      <td style={{ textAlign: "right", fontSize: 13 }}>₹{item.price}</td>
-                      <td style={{ textAlign: "right", fontSize: 13, fontWeight: 600 }}>₹{(item.price * order[item.id]).toFixed(2)}</td>
+                      <td style={{ padding: "8px 0", fontSize: 13, fontWeight: 700 }}>{item.name}<br /><span style={{ fontSize: 11, color: ACCENT, fontWeight: 700 }}>{item.variant}</span></td>
+                      <td style={{ textAlign: "right", fontSize: 13, fontWeight: 700 }}>{order[item.id]}</td>
+                      <td style={{ textAlign: "right", fontSize: 13, fontWeight: 700 }}>₹{item.price}</td>
+                      <td style={{ textAlign: "right", fontSize: 13, fontWeight: 800 }}>₹{(item.price * order[item.id]).toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               <div style={{ marginTop: 12, borderTop: "2px solid " + NAV, paddingTop: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 800, color: NAV }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, fontWeight: 900, color: NAV }}>
                   <span>Total</span><span>₹{subtotal.toLocaleString("en-IN")}</span>
                 </div>
               </div>
@@ -462,7 +467,7 @@ export default function RestaurantPOS() {
 
       {/* Hidden print template */}
       <div ref={printRef} style={{ display: "none" }}>
-        <h2>MMB Valentine Restaurant</h2>
+        <h2>MMB Valentine </h2>
         <p className="sub">{orderType}{table ? " | Table " + table : ""}{customer ? " | " + customer : ""}<br />{now}</p>
         <table>
           <thead><tr><th>Item</th><th className="r">Qty</th><th className="r">Rate</th><th className="r">Amt</th></tr></thead>
