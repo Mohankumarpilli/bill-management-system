@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const NAV = "#1c2b4b";
 const ACCENT = "#3a7ef5";
@@ -9,57 +9,14 @@ const BG_COLORS = ["#fff3e0","#fbe9e7","#e8f5e9","#fce4ec","#efebe9","#f3e5f5","
 
 const EMOJI_LIST = ["🍔","🍕","🍗","🍖","🌮","🌯","🥗","🥪","🍜","🍝","🍛","🍲","🍚","🫓","🥞","🧇","🍩","🎂","🍰","🍫","🍮","🍦","🧁","🍧","☕","🧋","🥤","🍹","🧃","🍋","🥛","💧","🍟","🍞","🧅","🥩","🐟","🧀","🍳","🥚"];
 
-const INIT_MENU = [
-  { id: "cb",   name: "Chicken Burger",    price: 120, cats: ["Favorite", "Main course"],       emoji: "🍔", bg: "#fff3e0", variant: "Regular" },
-  { id: "cl",   name: "Cafe Latte",         price: 110, cats: ["Favorite", "Coffee"],            emoji: "☕", bg: "#fbe9e7", variant: "Large"   },
-  { id: "cs",   name: "Caesar Salad",       price: 200, cats: ["Favorite", "Main course"],       emoji: "🥗", bg: "#e8f5e9", variant: "Regular" },
-  { id: "cd",   name: "Chocolate Donut",    price: 160, cats: ["Favorite", "Desserts"],          emoji: "🍩", bg: "#fce4ec", variant: "Regular" },
-  { id: "bc",   name: "Belgian Choco Shot", price: 60,  cats: ["Favorite", "Coffee"],            emoji: "🧋", bg: "#efebe9", variant: "Regular" },
-  { id: "vs",   name: "Veg Sandwich",       price: 60,  cats: ["Favorite", "Add on"],            emoji: "🥪", bg: "#f3e5f5", variant: "Regular" },
-  { id: "ct",   name: "Chicken Tenders",    price: 200, cats: ["Favorite", "Main course"],       emoji: "🍗", bg: "#fff8e1", variant: "Regular" },
-  { id: "cc",   name: "Cold Coffee",        price: 80,  cats: ["Favorite", "Coffee", "Drinks"],  emoji: "🥤", bg: "#e0f2f1", variant: "Regular" },
-  { id: "vl",   name: "Vanilla Latte",      price: 90,  cats: ["Favorite", "Coffee"],            emoji: "☕", bg: "#fbe9e7", variant: "Regular" },
-  { id: "ctc",  name: "Choco Truffle Cake", price: 80,  cats: ["Favorite", "Desserts"],          emoji: "🎂", bg: "#fce4ec", variant: "Regular" },
-  { id: "chb",  name: "Choco Brownie",      price: 60,  cats: ["Favorite", "Desserts"],          emoji: "🍫", bg: "#efebe9", variant: "Regular" },
-  { id: "fw",   name: "Flat White",         price: 120, cats: ["Favorite", "Coffee"],            emoji: "☕", bg: "#fbe9e7", variant: "Regular" },
-  { id: "cap",  name: "Cappuccino",         price: 90,  cats: ["Coffee"],                        emoji: "☕", bg: "#fbe9e7", variant: "Regular" },
-  { id: "esp",  name: "Espresso",           price: 70,  cats: ["Coffee"],                        emoji: "☕", bg: "#efebe9", variant: "Single"  },
-  { id: "ame",  name: "Americano",          price: 80,  cats: ["Coffee"],                        emoji: "☕", bg: "#e8eaf6", variant: "Regular" },
-  { id: "moc",  name: "Mocha",             price: 110, cats: ["Coffee"],                        emoji: "☕", bg: "#fce4ec", variant: "Regular" },
-  { id: "ff",   name: "French Fries",      price: 60,  cats: ["Add on"],                        emoji: "🍟", bg: "#fff8e1", variant: "Regular" },
-  { id: "gb",   name: "Garlic Bread",      price: 50,  cats: ["Add on"],                        emoji: "🍞", bg: "#fff3e0", variant: "Regular" },
-  { id: "nug",  name: "Chicken Nuggets",   price: 80,  cats: ["Add on"],                        emoji: "🍗", bg: "#fff8e1", variant: "6 pcs"   },
-  { id: "vp",   name: "Veg Pasta",         price: 150, cats: ["Main course"],                   emoji: "🍝", bg: "#fff3e0", variant: "Regular" },
-  { id: "gch",  name: "Grilled Chicken",   price: 250, cats: ["Main course"],                   emoji: "🍖", bg: "#fbe9e7", variant: "Regular" },
-  { id: "bir",  name: "Veg Biryani",       price: 140, cats: ["Main course", "Breakfast"],      emoji: "🍛", bg: "#fff8e1", variant: "Full"    },
-  { id: "ic",   name: "Ice Cream",         price: 50,  cats: ["Desserts"],                      emoji: "🍦", bg: "#fce4ec", variant: "2 Scoop" },
-  { id: "cc2",  name: "Cheesecake",        price: 90,  cats: ["Desserts"],                      emoji: "🍰", bg: "#fce4ec", variant: "Regular" },
-  { id: "waf",  name: "Waffle",            price: 80,  cats: ["Desserts"],                      emoji: "🧇", bg: "#fff8e1", variant: "Regular" },
-  { id: "marg", name: "Margherita",        price: 180, cats: ["Pizza"],                         emoji: "🍕", bg: "#fff3e0", variant: "Medium"  },
-  { id: "pep",  name: "Pepperoni",         price: 220, cats: ["Pizza"],                         emoji: "🍕", bg: "#fce4ec", variant: "Medium"  },
-  { id: "bbq",  name: "BBQ Chicken",       price: 240, cats: ["Pizza"],                         emoji: "🍕", bg: "#fff8e1", variant: "Medium"  },
-  { id: "vgs",  name: "Veggie Supreme",    price: 200, cats: ["Pizza"],                         emoji: "🍕", bg: "#e8f5e9", variant: "Medium"  },
-  { id: "idl",   name: "Idly",            price: 30,  cats: ["Breakfast"],                     emoji: "🍚", bg: "#f5f5f5", variant: "3 pcs"   },
-  { id: "poori", name: "Poori",           price: 40,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#fff3e0", variant: "2 pcs"   },
-  { id: "bonda", name: "Bonda",           price: 30,  cats: ["Breakfast"],                     emoji: "🍩", bg: "#fff8e1", variant: "3 pcs"   },
-  { id: "vad",   name: "Vada",            price: 30,  cats: ["Breakfast"],                     emoji: "🍩", bg: "#fce4ec", variant: "2 pcs"   },
-  { id: "sidl",  name: "Sambar Idly",     price: 40,  cats: ["Breakfast"],                     emoji: "🍚", bg: "#e8f5e9", variant: "Regular" },
-  { id: "kud",   name: "Kudumu",          price: 30,  cats: ["Breakfast"],                     emoji: "🍚", bg: "#f5f5f5", variant: "Regular" },
-  { id: "upm",   name: "Upma",            price: 30,  cats: ["Breakfast"],                     emoji: "🍲", bg: "#e8f5e9", variant: "Regular" },
-  { id: "pdosa", name: "Plain Dosa",      price: 35,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#fff8e1", variant: "Regular" },
-  { id: "odosa", name: "Onion Dosa",      price: 40,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#fce4ec", variant: "Regular" },
-  { id: "udosa", name: "Upma Dosa",       price: 45,  cats: ["Breakfast"],                     emoji: "🫓", bg: "#e0f2f1", variant: "Regular" },
-  { id: "las",  name: "Mango Lassi",       price: 60,  cats: ["Drinks"],                        emoji: "🥛", bg: "#fff8e1", variant: "Regular" },
-  { id: "jui",  name: "Fresh Juice",       price: 60,  cats: ["Drinks"],                        emoji: "🧃", bg: "#e8f5e9", variant: "Regular" },
-  { id: "lem",  name: "Lemonade",          price: 40,  cats: ["Drinks"],                        emoji: "🍋", bg: "#fffde7", variant: "Regular" },
-  { id: "msh",  name: "Milkshake",         price: 80,  cats: ["Drinks"],                        emoji: "🥤", bg: "#fce4ec", variant: "Regular" },
-  { id: "wat",  name: "Mineral Water",     price: 20,  cats: ["Drinks"],                        emoji: "💧", bg: "#e0f7fa", variant: "500ml"   },
-];
+const normalizeItem = (item) => ({ ...item, price: Number(item.price) });
 
 const blankForm = { name: "", price: "", emoji: "🍔", bg: "#fff3e0", variant: "Regular", cats: ["Favorite"] };
 
 export default function RestaurantPOS() {
-  const [menu, setMenu] = useState(INIT_MENU);
+  const [menu, setMenu] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(true);
+  const [menuError, setMenuError] = useState("");
   const [cat, setCat] = useState("Favorite");
   const [order, setOrder] = useState({});
   const [table, setTable] = useState("");
@@ -73,8 +30,20 @@ export default function RestaurantPOS() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [form, setForm] = useState(blankForm);
   const [formError, setFormError] = useState("");
+  const [placingOrder, setPlacingOrder] = useState(false);
   const tabsRef = useRef();
   const printRef = useRef();
+
+  useEffect(() => {
+    fetch("/api/menu")
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load menu");
+        return r.json();
+      })
+      .then((items) => setMenu(items.map(normalizeItem)))
+      .catch(() => setMenuError("Could not load menu from the database."))
+      .finally(() => setMenuLoading(false));
+  }, []);
 
   const filtered = menu.filter(
     (i) => i.cats.includes(cat) &&
@@ -86,9 +55,14 @@ export default function RestaurantPOS() {
   const clearItem = (id) => setOrder((p) => { const n = { ...p }; delete n[id]; return n; });
   const clearAll = () => setOrder({});
 
-  const deleteMenuItem = (id) => {
+  const deleteMenuItem = async (id) => {
     setMenu((m) => m.filter((i) => i.id !== id));
     clearItem(id);
+    try {
+      await fetch(`/api/menu?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    } catch {
+      setMenuError("Failed to delete item on the server.");
+    }
   };
 
   const toggleFormCat = (c) => {
@@ -98,7 +72,7 @@ export default function RestaurantPOS() {
     }));
   };
 
-  const submitNewItem = () => {
+  const submitNewItem = async () => {
     if (!form.name.trim()) return setFormError("Item name is required.");
     if (!form.price || isNaN(form.price) || Number(form.price) <= 0) return setFormError("Enter a valid price.");
     if (form.cats.length === 0) return setFormError("Select at least one category.");
@@ -112,13 +86,56 @@ export default function RestaurantPOS() {
       variant: form.variant || "Regular",
       cats: form.cats,
     };
-    setMenu((m) => [...m, newItem]);
-    setForm(blankForm);
-    setShowAddModal(false);
+    try {
+      const res = await fetch("/api/menu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newItem),
+      });
+      if (!res.ok) throw new Error("Failed to save item");
+      const saved = await res.json();
+      setMenu((m) => [...m, normalizeItem(saved)]);
+      setForm(blankForm);
+      setShowAddModal(false);
+    } catch {
+      setFormError("Failed to save item to the database.");
+    }
   };
 
   const ordered = menu.filter((i) => order[i.id]);
   const subtotal = ordered.reduce((s, i) => s + i.price * order[i.id], 0);
+
+  const confirmOrder = async () => {
+    setPlacingOrder(true);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderType,
+          tableNumber: table || null,
+          customerName: customer || null,
+          subtotal,
+          items: ordered.map((i) => ({
+            menuItemId: i.id,
+            name: i.name,
+            price: i.price,
+            variant: i.variant,
+            qty: order[i.id],
+          })),
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to place order");
+      clearAll();
+      setShowBill(false);
+      setTable("");
+      setCustomer("");
+    } catch {
+      setMenuError("Failed to save the order to the database.");
+    } finally {
+      setPlacingOrder(false);
+    }
+  };
 
   const scrollTabs = (dir) => { if (tabsRef.current) tabsRef.current.scrollLeft += dir * 150; };
 
@@ -170,6 +187,12 @@ export default function RestaurantPOS() {
         {/* LEFT: MENU */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", padding: "14px 14px 0 14px" }}>
 
+          {menuError && (
+            <div style={{ background: "#fde8e8", border: "1px solid #e53e3e", borderRadius: 8, padding: "8px 14px", marginBottom: 12, fontSize: 13, color: "#c53030", flexShrink: 0 }}>
+              ⚠️ {menuError}
+            </div>
+          )}
+
           {/* Edit mode banner */}
           {editMode && (
             <div style={{ background: "#fff3cd", border: "1px solid #ffc107", borderRadius: 8, padding: "8px 14px", marginBottom: 12, fontSize: 13, color: "#856404", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
@@ -195,7 +218,11 @@ export default function RestaurantPOS() {
           <div style={{ overflowY: "auto", flex: 1, paddingBottom: 14 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))", gap: 12 }}>
 
-              {filtered.length === 0 && !editMode && (
+              {menuLoading && (
+                <div style={{ gridColumn: "1/-1", padding: "60px 0", textAlign: "center", color: "#aaa", fontSize: 14 }}>Loading menu…</div>
+              )}
+
+              {!menuLoading && filtered.length === 0 && !editMode && (
                 <div style={{ gridColumn: "1/-1", padding: "60px 0", textAlign: "center", color: "#aaa", fontSize: 14 }}>No items found</div>
               )}
 
@@ -457,8 +484,10 @@ export default function RestaurantPOS() {
               </div>
               <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
                 <button onClick={handlePrint} style={{ flex: 1, background: "#f5f7fa", border: "1px solid #dde0ea", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 600, color: "#444", cursor: "pointer" }}>🖨️ Print Bill</button>
-                <button onClick={() => { clearAll(); setShowBill(false); setTable(""); setCustomer(""); }}
-                  style={{ flex: 1, background: ACCENT, border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer" }}>✅ Confirm Order</button>
+                <button onClick={confirmOrder} disabled={placingOrder}
+                  style={{ flex: 1, background: ACCENT, border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 700, color: "#fff", cursor: placingOrder ? "not-allowed" : "pointer", opacity: placingOrder ? 0.6 : 1 }}>
+                  {placingOrder ? "Saving…" : "✅ Confirm Order"}
+                </button>
               </div>
             </div>
           </div>
