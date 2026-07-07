@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const NAV = "#1c2b4b";
 const ACCENT = "#3a7ef5";
@@ -172,6 +173,10 @@ export default function RestaurantPOS() {
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="🔍  Search items..."
             style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "6px 14px", color: "#fff", fontSize: 13, width: 190, outline: "none" }} />
+          <Link to="/reports"
+            style={{ background: ACCENT, border: "none", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", textDecoration: "none" }}>
+            💰 Today's Earnings
+          </Link>
           <button
             onClick={() => { setEditMode((e) => !e); setSearch(""); }}
             style={{ background: editMode ? "#e55" : "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>

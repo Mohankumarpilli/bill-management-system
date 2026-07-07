@@ -1,10 +1,12 @@
 import http from "node:http";
 import menuHandler from "../api/menu.js";
 import ordersHandler from "../api/orders.js";
+import reportsHandler from "../api/reports.js";
 
 const routes = {
   "/api/menu": menuHandler,
   "/api/orders": ordersHandler,
+  "/api/reports": reportsHandler,
 };
 
 function attachHelpers(req, res, query) {
