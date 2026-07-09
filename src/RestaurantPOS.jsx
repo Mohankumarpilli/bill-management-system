@@ -32,6 +32,7 @@ export default function RestaurantPOS() {
   const [form, setForm] = useState(blankForm);
   const [formError, setFormError] = useState("");
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [showCart, setShowCart] = useState(false);
   const tabsRef = useRef();
   const printRef = useRef();
 
@@ -129,6 +130,7 @@ export default function RestaurantPOS() {
       if (!res.ok) throw new Error("Failed to place order");
       clearAll();
       setShowBill(false);
+      setShowCart(false);
       setTable("");
       setCustomer("");
     } catch {
@@ -162,35 +164,58 @@ export default function RestaurantPOS() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+      <style>{`
+        .pos-navbtn:hover { background: rgba(255,255,255,0.24) !important; }
+        .pos-cta-link:hover { filter: brightness(1.08); box-shadow: 0 4px 12px rgba(58,126,245,0.45); }
+        .pos-tab:hover:not(.active) { background: #eef1f7 !important; }
+        .pos-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(20,30,60,0.16) !important; }
+        .pos-addcard:hover { background: #f5f4ff !important; border-color: #4f46e5 !important; }
+        .pos-cta:hover:not(:disabled) { filter: brightness(1.07); box-shadow: 0 8px 18px rgba(58,126,245,0.38); }
+        .pos-iconbtn:hover { background: #eceff5 !important; border-color: #c7ccdb !important; }
+        .pos-fab:hover { filter: brightness(1.08); box-shadow: 0 8px 20px rgba(58,126,245,0.5) !important; }
+        .pos-drawer-close:hover { background: rgba(255,255,255,0.24) !important; }
+        @media (max-width: 860px) {
+          .pos-topnav { flex-wrap: wrap; height: auto !important; padding: 10px 14px !important; row-gap: 8px; }
+          .pos-topnav-right { width: 100%; flex-wrap: wrap; }
+          .pos-search { flex: 1 1 100%; width: auto !important; }
+          .pos-order-panel {
+            position: fixed !important; inset: 0; width: 100% !important; z-index: 50 !important;
+            transform: translateX(100%); transition: transform 0.25s ease;
+          }
+          .pos-order-panel.open { transform: translateX(0); }
+          .pos-drawer-close { display: inline-flex !important; }
+          .pos-fab { display: flex !important; }
+        }
+      `}</style>
 
       {/* ── TOP NAV ── */}
-      <div style={{ background: NAV, color: "#fff", padding: "0 20px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+      <div className="pos-topnav" style={{ background: NAV, color: "#fff", padding: "0 20px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.18)", zIndex: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 20 }}>🍽️</span>
           <span style={{ fontWeight: 700, fontSize: 17 }}>MMB Valentine</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
+        <div className="pos-topnav-right" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <input className="pos-search" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="🔍  Search items..."
             style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "6px 14px", color: "#fff", fontSize: 13, width: 190, outline: "none" }} />
-          <Link to="/reports"
-            style={{ background: ACCENT, border: "none", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", textDecoration: "none" }}>
+          <Link to="/reports" className="pos-cta-link"
+            style={{ background: ACCENT, border: "none", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", textDecoration: "none", transition: "filter 0.15s, box-shadow 0.15s", whiteSpace: "nowrap" }}>
             💰 Today's Earnings
           </Link>
-          <button
+          <button className="pos-navbtn"
             onClick={() => { setEditMode((e) => !e); setSearch(""); }}
-            style={{ background: editMode ? "#e55" : "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            style={{ background: editMode ? "#e55" : "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "background 0.15s", whiteSpace: "nowrap" }}>
             {editMode ? "✕ Done" : "⚙ Manage Menu"}
           </button>
-          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>👤</div>
+          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }}>👤</div>
         </div>
       </div>
 
       {/* ── BODY ── */}
-      <div style={{ display: "flex", flex: 1, overflow: "hidden", background: "#eef0f5" }}>
+      <div style={{ display: "flex", flex: 1, overflow: "hidden", background: "#eef0f5", position: "relative" }}>
 
         {/* LEFT: MENU */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", padding: "14px 14px 0 14px" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", padding: "14px 14px 0 14px", minWidth: 0 }}>
 
           {menuError && (
             <div style={{ background: "#fde8e8", border: "1px solid #e53e3e", borderRadius: 8, padding: "8px 14px", marginBottom: 12, fontSize: 13, color: "#c53030", flexShrink: 0 }}>
@@ -207,16 +232,16 @@ export default function RestaurantPOS() {
 
           {/* Category tabs */}
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14, flexShrink: 0 }}>
-            <button onClick={() => scrollTabs(-1)} style={{ background: "#fff", border: "1px solid #dde0e8", borderRadius: 6, width: 30, height: 34, fontSize: 18, color: "#555", flexShrink: 0, cursor: "pointer" }}>‹</button>
+            <button className="pos-iconbtn" onClick={() => scrollTabs(-1)} style={{ background: "#fff", border: "1px solid #dde0e8", borderRadius: 6, width: 30, height: 34, fontSize: 18, color: "#555", flexShrink: 0, cursor: "pointer", transition: "background 0.15s" }}>‹</button>
             <div ref={tabsRef} style={{ display: "flex", gap: 6, overflowX: "auto", scrollBehavior: "smooth", flex: 1, scrollbarWidth: "none" }}>
               {CATS.map((c) => (
-                <button key={c} onClick={() => { setCat(c); setSearch(""); }}
-                  style={{ padding: "7px 18px", borderRadius: 6, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", border: "none", cursor: "pointer", background: cat === c ? NAV : "#fff", color: cat === c ? "#fff" : "#666", flexShrink: 0, transition: "all 0.15s" }}>
+                <button key={c} className={`pos-tab${cat === c ? " active" : ""}`} onClick={() => { setCat(c); setSearch(""); }}
+                  style={{ padding: "7px 18px", borderRadius: 6, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", border: "none", cursor: "pointer", background: cat === c ? NAV : "#fff", color: cat === c ? "#fff" : "#666", flexShrink: 0, transition: "all 0.15s", boxShadow: cat === c ? "0 2px 8px rgba(28,43,75,0.3)" : "none" }}>
                   {c}
                 </button>
               ))}
             </div>
-            <button onClick={() => scrollTabs(1)} style={{ background: "#fff", border: "1px solid #dde0e8", borderRadius: 6, width: 30, height: 34, fontSize: 18, color: "#555", flexShrink: 0, cursor: "pointer" }}>›</button>
+            <button className="pos-iconbtn" onClick={() => scrollTabs(1)} style={{ background: "#fff", border: "1px solid #dde0e8", borderRadius: 6, width: 30, height: 34, fontSize: 18, color: "#555", flexShrink: 0, cursor: "pointer", transition: "background 0.15s" }}>›</button>
           </div>
 
           {/* Menu grid */}
@@ -234,8 +259,8 @@ export default function RestaurantPOS() {
               {filtered.map((item) => {
                 const qty = order[item.id] || 0;
                 return (
-                  <div key={item.id}
-                    style={{ background: "#fff", borderRadius: 12, overflow: "hidden", position: "relative", border: qty > 0 ? `2px solid ${NAV}` : "2px solid transparent", boxShadow: "0 2px 8px rgba(0,0,0,0.07)", transition: "all 0.15s", cursor: qty > 0 || editMode ? "default" : "pointer" }}
+                  <div key={item.id} className="pos-card"
+                    style={{ background: "#fff", borderRadius: 12, overflow: "hidden", position: "relative", border: qty > 0 ? `2px solid ${NAV}` : "2px solid transparent", boxShadow: "0 2px 8px rgba(20,30,60,0.08)", transition: "transform 0.15s, box-shadow 0.15s", cursor: qty > 0 || editMode ? "default" : "pointer" }}
                     onClick={() => !editMode && qty === 0 && addItem(item.id)}>
 
                     {/* Delete button in edit mode */}
@@ -274,8 +299,8 @@ export default function RestaurantPOS() {
 
               {/* + Add Item card (edit mode only) */}
               {editMode && (
-                <div onClick={() => setShowAddModal(true)}
-                  style={{ background: "#fff", borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "2px dashed #6366f1", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 180, gap: 8, color: "#6366f1", transition: "all 0.15s" }}>
+                <div className="pos-addcard" onClick={() => setShowAddModal(true)}
+                  style={{ background: "#fff", borderRadius: 12, overflow: "hidden", cursor: "pointer", border: "2px dashed #6366f1", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 180, gap: 8, color: "#6366f1", transition: "background 0.15s, border-color 0.15s" }}>
                   <div style={{ fontSize: 32, fontWeight: 300 }}>＋</div>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>Add Item</div>
                 </div>
@@ -285,8 +310,12 @@ export default function RestaurantPOS() {
         </div>
 
         {/* RIGHT: ORDER PANEL */}
-        <div style={{ width: 320, display: "flex", flexDirection: "column", background: "#fff", borderLeft: "1px solid #e8eaf0", overflow: "hidden", flexShrink: 0 }}>
-          <div style={{ background: NAV, padding: "0 16px", height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+        <div className={`pos-order-panel${showCart ? " open" : ""}`} style={{ width: 320, display: "flex", flexDirection: "column", background: "#fff", borderLeft: "1px solid #e8eaf0", boxShadow: "-6px 0 18px rgba(20,30,60,0.05)", overflow: "hidden", flexShrink: 0, zIndex: 10 }}>
+          <div style={{ background: NAV, padding: "0 16px", height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: 10 }}>
+            <button className="pos-drawer-close" onClick={() => setShowCart(false)}
+              style={{ display: "none", background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: 6, width: 26, height: 26, fontSize: 13, cursor: "pointer", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 0.15s" }}>
+              ✕
+            </button>
             <div style={{ display: "flex", gap: 14 }}>
               {["Dine-in", "Takeaway", "Delivery"].map((t) => (
                 <button key={t} onClick={() => setOrderType(t)}
@@ -303,8 +332,8 @@ export default function RestaurantPOS() {
           {/* Table / Customer */}
           <div style={{ padding: "10px 14px", borderBottom: "1px solid #f0f2f6", display: "flex", gap: 8, flexShrink: 0 }}>
             <div style={{ flex: 1, position: "relative" }}>
-              <button onClick={() => setShowTable((t) => !t)}
-                style={{ width: "100%", background: "#f5f7fa", border: "1px solid #e0e3ec", borderRadius: 8, padding: "7px 10px", fontSize: 12.5, color: table ? NAV : "#888", fontWeight: table ? 600 : 400, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+              <button className="pos-iconbtn" onClick={() => setShowTable((t) => !t)}
+                style={{ width: "100%", background: "#f5f7fa", border: "1px solid #e0e3ec", borderRadius: 8, padding: "7px 10px", fontSize: 12.5, color: table ? NAV : "#888", fontWeight: table ? 600 : 400, display: "flex", alignItems: "center", gap: 6, cursor: "pointer", transition: "background 0.15s" }}>
                 <span>🪑</span> {table ? "Table " + table : "Table"}
               </button>
               {showTable && (
@@ -315,8 +344,8 @@ export default function RestaurantPOS() {
               )}
             </div>
             <div style={{ flex: 1, position: "relative" }}>
-              <button onClick={() => setShowCustomer((t) => !t)}
-                style={{ width: "100%", background: "#f5f7fa", border: "1px solid #e0e3ec", borderRadius: 8, padding: "7px 10px", fontSize: 12.5, color: customer ? NAV : "#888", fontWeight: customer ? 600 : 400, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+              <button className="pos-iconbtn" onClick={() => setShowCustomer((t) => !t)}
+                style={{ width: "100%", background: "#f5f7fa", border: "1px solid #e0e3ec", borderRadius: 8, padding: "7px 10px", fontSize: 12.5, color: customer ? NAV : "#888", fontWeight: customer ? 600 : 400, display: "flex", alignItems: "center", gap: 6, cursor: "pointer", transition: "background 0.15s" }}>
                 <span>👤</span> {customer || "Add customer"}
               </button>
               {showCustomer && (
@@ -356,13 +385,22 @@ export default function RestaurantPOS() {
 
           {/* Proceed button */}
           <div style={{ padding: "10px 14px 14px", flexShrink: 0 }}>
-            <button onClick={() => ordered.length > 0 && setShowBill(true)} disabled={ordered.length === 0}
-              style={{ width: "100%", background: ordered.length === 0 ? "#ccc" : ACCENT, color: "#fff", border: "none", borderRadius: 10, padding: "13px", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: ordered.length === 0 ? "not-allowed" : "pointer", transition: "background 0.15s" }}>
+            <button className="pos-cta" onClick={() => ordered.length > 0 && setShowBill(true)} disabled={ordered.length === 0}
+              style={{ width: "100%", background: ordered.length === 0 ? "#ccc" : ACCENT, color: "#fff", border: "none", borderRadius: 10, padding: "13px", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: ordered.length === 0 ? "not-allowed" : "pointer", transition: "filter 0.15s, box-shadow 0.15s", boxShadow: ordered.length === 0 ? "none" : "0 4px 12px rgba(58,126,245,0.3)" }}>
               <span>Proceed to kitchen</span>
               <span style={{ background: "rgba(0,0,0,0.18)", borderRadius: 6, padding: "3px 10px", fontSize: 15, fontWeight: 800 }}>₹ {subtotal.toLocaleString("en-IN")}</span>
             </button>
           </div>
         </div>
+
+        {/* Mobile cart FAB */}
+        {ordered.length > 0 && (
+          <button className="pos-fab" onClick={() => setShowCart(true)}
+            style={{ display: "none", position: "fixed", bottom: 20, right: 20, zIndex: 40, background: ACCENT, color: "#fff", border: "none", borderRadius: 30, padding: "12px 20px", fontSize: 14, fontWeight: 700, alignItems: "center", gap: 10, cursor: "pointer", boxShadow: "0 6px 18px rgba(58,126,245,0.45)", transition: "filter 0.15s, box-shadow 0.15s" }}>
+            <span>🛒 {ordered.reduce((s, i) => s + order[i.id], 0)}</span>
+            <span>₹ {subtotal.toLocaleString("en-IN")}</span>
+          </button>
+        )}
       </div>
 
       {/* ══ ADD ITEM MODAL ══ */}
